@@ -1,43 +1,363 @@
-<!DOCTYPE HTML>
-<html>
-	<head>
-		<title>Typing Test by <a href="https://sudeep-portfolio.netlify.app/">@SudeepAcharjee</a>
-		</title>
-		<meta charset="UTF-8">
-		<link rel="stylesheet" type="text/css" href="style.css">
-	</head>
-	
-	<body>
-			
-		<div id="startWindow">
-			<div class="modalBox">
-				<h1>Typing Test</h1>
-				<p>It just takes a minute to test your typing speed! Timer will only start after you begin typing. It's a simple app which you can easily fool to get a good score. But if you are not serious, you may as well watch some other web-apps<a href="https://github.com/SudeepAcharjee" target="_blank">My Github Repository</a> :)</p>
-				<button id="startButton">Start Test</button>
-			</div>
-		</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-		<div id="timer">
-		</div>
+        body {
+            background: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            overflow: hidden;
+        }
 
-		<div id="wrapper">
+        #wrapper {
+            margin: 0 auto;
+            max-width: 1200px;
+            padding: 0 20px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
 
-		<div id="paraContainer">
-			<p id="testPara"></p>
-		</div>
+        #timer {
+            text-align: center;
+            padding: 15px;
+            font-size: 25px;
+            background: #2ECC71;
+            color: #fff;
+            letter-spacing: 2.5px;
+            font-weight: 300;
+            display: none;
+        }
 
-		​<textarea id="textArea" name="textarea" rows="5" cols="50" onPaste="return false" placeholder="Timer will only start after you begin typing."></textarea>
+        #paraContainer {
+            display: none;
+            width: 550px;
+            height: 600px;
+            margin: 25px 10px;
+            font-size: 18px;
+            line-height: 1.5;
+            border: 2px solid #2ECC71;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-y: auto;
+        }
 
-		</div>
+        #paraContainer .correct {
+            color: #2ECC71;
+        }
 
-		<div id="newTestWindow">
-			<div class="modalBox">
-				<h1>Time's Up!</h1>
-				<p id="finalScore"></p>
-				<button id="newTestButton">Click to try again!</button>
-			</div>
-		</div>
+        #paraContainer .incorrect {
+            color: #E74C3C;
+            background-color: #ffebee;
+        }
 
-	<script type="text/javascript" src="test.js"></script>
-	</body>
-<html>
+        #paraContainer .cursor {
+            border-left: 2px solid #3498DB;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        #textArea {
+            display: none;
+            margin: 25px 10px;
+            width: 550px;
+            height: 600px;
+            resize: none;
+            font-size: 18px;
+            line-height: 1.5;
+            padding: 15px;
+            outline: none;
+            border: 2px solid #2ECC71;
+            border-radius: 5px;
+        }
+
+        #capsWarning {
+            color: #E74C3C;
+            font-weight: bold;
+            margin: 5px 10px;
+            display: none;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            height: 100%;
+            width: 100%;
+            top: 0;
+            left: 0;
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modalBox {
+            width: 90%;
+            max-width: 500px;
+            background: #fff;
+            text-align: center;
+            border: 2px solid #C0392B;
+            border-radius: 10px;
+            padding: 30px;
+            line-height: 1.5;
+        }
+
+        .modalBox h1 {
+            font-size: 35px;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .modalBox p {
+            font-size: 18px;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .modalBox button {
+            outline: none;
+            padding: 15px 30px;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 5px;
+            background: #22A7F0;
+            color: #fff;
+            font-weight: 300;
+            transition: all 0.2s;
+        }
+
+        .modalBox button:hover {
+            background: #fff;
+            border: 2px solid #22A7F0;
+            color: #22A7F0;
+        }
+
+        #finalScore {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+
+        .score-detail {
+            font-size: 16px;
+            margin: 10px 0;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            #wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            #paraContainer, #textArea {
+                width: 100%;
+                max-width: 550px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="startWindow" class="modal-overlay">
+        <div class="modalBox">
+            <h1>Typing Test</h1>
+            <p>Test your typing speed in 60 seconds! The timer starts automatically when you begin typing. Challenge yourself to type as accurately and quickly as possible.</p>
+            <button id="startButton">Start Test</button>
+        </div>
+    </div>
+
+    <div id="timer"></div>
+
+    <div id="wrapper">
+        <div>
+            <p id="capsWarning">⚠️ Caps Lock is ON</p>
+            <textarea id="textArea" placeholder="Timer will start when you begin typing..." onpaste="return false"></textarea>
+        </div>
+        <div id="paraContainer"></div>
+    </div>
+
+    <div id="newTestWindow" class="modal-overlay hidden">
+        <div class="modalBox">
+            <h1>Time's Up!</h1>
+            <div id="finalScore"></div>
+            <button id="newTestButton">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        const testParagraphs = [
+            "The quick brown fox jumps over the lazy dog. This pangram contains every letter of the alphabet and is commonly used for typing practice. Typing tests help improve both speed and accuracy, which are essential skills in today's digital world. Regular practice can significantly enhance your typing abilities over time.",
+            "Technology has transformed the way we communicate and work. From smartphones to cloud computing, innovation continues to shape our daily lives. The ability to type quickly and accurately has become more important than ever before. Practice makes perfect, and with dedication, anyone can improve their typing skills.",
+            "Learning to type without looking at the keyboard is a valuable skill. Touch typing allows you to focus on your thoughts rather than finding keys. It may seem challenging at first, but consistent practice will make it second nature. Start slowly and gradually increase your speed as your accuracy improves.",
+            "The internet has made information accessible to everyone around the globe. We can now learn new skills, connect with people, and access resources instantly. Typing efficiently allows us to take full advantage of these opportunities. Whether for work or personal use, good typing skills open many doors."
+        ];
+
+        let currentParagraph = '';
+        let timeLeft = 60;
+        let timerInterval = null;
+        let testStarted = false;
+        let correctChars = 0;
+        let incorrectChars = 0;
+
+        const startWindow = document.getElementById('startWindow');
+        const startButton = document.getElementById('startButton');
+        const timer = document.getElementById('timer');
+        const paraContainer = document.getElementById('paraContainer');
+        const textArea = document.getElementById('textArea');
+        const capsWarning = document.getElementById('capsWarning');
+        const newTestWindow = document.getElementById('newTestWindow');
+        const newTestButton = document.getElementById('newTestButton');
+        const finalScore = document.getElementById('finalScore');
+
+        function initTest() {
+            currentParagraph = testParagraphs[Math.floor(Math.random() * testParagraphs.length)];
+            paraContainer.textContent = currentParagraph;
+            timeLeft = 60;
+            testStarted = false;
+            correctChars = 0;
+            incorrectChars = 0;
+            textArea.value = '';
+            updateTimer();
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timer.textContent = `Time Remaining: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (testStarted) return;
+            testStarted = true;
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                
+                if (timeLeft <= 0) {
+                    endTest();
+                }
+            }, 1000);
+        }
+
+        function highlightText() {
+            const typed = textArea.value;
+            let highlighted = '';
+            
+            for (let i = 0; i < currentParagraph.length; i++) {
+                if (i < typed.length) {
+                    if (typed[i] === currentParagraph[i]) {
+                        highlighted += `<span class="correct">${currentParagraph[i]}</span>`;
+                    } else {
+                        highlighted += `<span class="incorrect">${currentParagraph[i]}</span>`;
+                    }
+                } else if (i === typed.length) {
+                    highlighted += `<span class="cursor">${currentParagraph[i]}</span>`;
+                } else {
+                    highlighted += currentParagraph[i];
+                }
+            }
+            
+            paraContainer.innerHTML = highlighted;
+        }
+
+        function calculateResults() {
+            const typed = textArea.value;
+            correctChars = 0;
+            incorrectChars = 0;
+            
+            for (let i = 0; i < typed.length && i < currentParagraph.length; i++) {
+                if (typed[i] === currentParagraph[i]) {
+                    correctChars++;
+                } else {
+                    incorrectChars++;
+                }
+            }
+            
+            const wordsTyped = Math.floor(correctChars / 5);
+            const accuracy = typed.length > 0 ? Math.round((correctChars / typed.length) * 100) : 0;
+            const wpm = Math.round(wordsTyped);
+            
+            return { wpm, accuracy, correctChars, incorrectChars };
+        }
+
+        function endTest() {
+            clearInterval(timerInterval);
+            textArea.disabled = true;
+            
+            const results = calculateResults();
+            
+            finalScore.innerHTML = `
+                <p style="font-size: 32px; font-weight: bold; color: #2ECC71; margin: 20px 0;">
+                    ${results.wpm} WPM
+                </p>
+                <p class="score-detail">Accuracy: ${results.accuracy}%</p>
+                <p class="score-detail">Correct Characters: ${results.correctChars}</p>
+                <p class="score-detail">Incorrect Characters: ${results.incorrectChars}</p>
+            `;
+            
+            newTestWindow.classList.remove('hidden');
+        }
+
+        startButton.addEventListener('click', () => {
+            startWindow.classList.add('hidden');
+            timer.style.display = 'block';
+            paraContainer.style.display = 'block';
+            textArea.style.display = 'block';
+            initTest();
+            textArea.focus();
+        });
+
+        textArea.addEventListener('input', () => {
+            if (!testStarted) {
+                startTimer();
+            }
+            highlightText();
+        });
+
+        textArea.addEventListener('keydown', (e) => {
+            const isCapsLock = e.getModifierState('CapsLock');
+            capsWarning.style.display = isCapsLock ? 'block' : 'none';
+        });
+
+        textArea.addEventListener('keyup', (e) => {
+            const isCapsLock = e.getModifierState('CapsLock');
+            capsWarning.style.display = isCapsLock ? 'block' : 'none';
+        });
+
+        newTestButton.addEventListener('click', () => {
+            newTestWindow.classList.add('hidden');
+            timer.style.display = 'none';
+            paraContainer.style.display = 'none';
+            textArea.style.display = 'none';
+            textArea.disabled = false;
+            startWindow.classList.remove('hidden');
+        });
+
+        initTest();
+    </script>
+</body>
+</html>
